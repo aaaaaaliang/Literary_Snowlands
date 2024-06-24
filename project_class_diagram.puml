@@ -1,0 +1,2718 @@
+@startuml
+namespace author {
+    class sAuthor << (S,Aquamarine) >> {
+        + RegisterAuthor(ctx context.Context, registerInfo do.AuthorInfo) error
+        + QueryAuthorStatus(ctx context.Context) (*int, error)
+        + CreateBook(ctx context.Context, bookInfo do.BookInfo) error
+        + ListAuthorBookInfo(ctx context.Context, pageNum int, pageSize int) ([]entity.BookInfo, int, error)
+        + SaveBookChapter(ctx context.Context, input model.AuthorBookInput) error
+        + DeleteChapterById(ctx context.Context, chapterId string) error
+        + GetChapterById(ctx context.Context, chapterId string) (*model.BookChapter, error)
+        + UpdateChapterById(ctx context.Context, chapterId string, chapter model.BookChapter) error
+        + ListBookChapters(ctx context.Context, book model.ListBook) ([]entity.BookChapter, int, error)
+
+    }
+}
+
+"service.IAuthor" <|-- "author.sAuthor"
+
+namespace backend {
+    class AuthorControllerV1 << (S,Aquamarine) >> {
+        + DeleteChapter(ctx context.Context, req *v1.DeleteBookChapterReq) (*v1.DeleteBookChapterRes, error)
+        + GetBookChapter(ctx context.Context, req *v1.GetBookChapterReq) (*v1.GetBookChapterRes, error)
+        + ListBookChapters(ctx context.Context, req *v1.ListBookChaptersReq) (*v1.ListBookChaptersRes, error)
+        + PublishBook(ctx context.Context, req *v1.PublishBookReq) (*v1.PublishBookRes, error)
+        + PublishBookChapter(ctx context.Context, req *v1.PublishBookChapterReq) (*v1.PublishBookChapterRes, error)
+        + PublishBookList(ctx context.Context, req *v1.PublishBookListReq) (*v1.PublishBookListRes, error)
+        + QueryAuthorStatus(ctx context.Context, req *v1.QueryAuthorStatusReq) (*v1.QueryAuthorStatusRes, error)
+        + AuthorRegister(ctx context.Context, req *v1.AuthorRegisterReq) (*v1.AuthorRegisterRes, error)
+        + UpdateBookChapter(ctx context.Context, req *v1.UpdateBookChapterReq) (*v1.UpdateBookChapterRes, error)
+
+    }
+    interface IAuthorV1  {
+        + AuthorRegister(ctx context.Context, req *v1.AuthorRegisterReq) (*v1.AuthorRegisterRes, error)
+        + QueryAuthorStatus(ctx context.Context, req *v1.QueryAuthorStatusReq) (*v1.QueryAuthorStatusRes, error)
+        + PublishBook(ctx context.Context, req *v1.PublishBookReq) (*v1.PublishBookRes, error)
+        + PublishBookList(ctx context.Context, req *v1.PublishBookListReq) (*v1.PublishBookListRes, error)
+        + PublishBookChapter(ctx context.Context, req *v1.PublishBookChapterReq) (*v1.PublishBookChapterRes, error)
+        + DeleteChapter(ctx context.Context, req *v1.DeleteBookChapterReq) (*v1.DeleteBookChapterRes, error)
+        + GetBookChapter(ctx context.Context, req *v1.GetBookChapterReq) (*v1.GetBookChapterRes, error)
+        + UpdateBookChapter(ctx context.Context, req *v1.UpdateBookChapterReq) (*v1.UpdateBookChapterRes, error)
+        + ListBookChapters(ctx context.Context, req *v1.ListBookChaptersReq) (*v1.ListBookChaptersRes, error)
+
+    }
+    interface IBackendV1  {
+        + GetChapterId(ctx context.Context, req *v1.GetChapterIdReq) (*v1.GetChapterIdRes, error)
+
+    }
+}
+
+"backend.IAuthorV1" <|-- "backend.AuthorControllerV1"
+
+namespace book {
+    class sBook << (S,Aquamarine) >> {
+        + AddBookVisit(ctx context.Context, bookId int) error
+        + FindWorkDirectionCategory(ctx context.Context, workDirection int) ([]entity.BookCategory, error)
+        + FindBookInfoAndChapterNumById(ctx context.Context, id int) (*entity.BookInfo, int, error)
+        + GetLastChapterAbout(ctx context.Context, id int) (*entity.BookChapter, int, string, error)
+        + ListRecBooks(ctx context.Context, id int) ([]*entity.BookInfo, error)
+        + FindChapterList(ctx context.Context, id int) ([]*entity.BookChapter, error)
+        + FindBookContentByChapterId(ctx context.Context, id int) (*entity.BookChapter, string, *entity.BookInfo, int, error)
+        + FindPreChapterId(ctx context.Context, id int) (int, error)
+        + FindNextChapterId(ctx context.Context, id int) (int, error)
+        + ListVisitRank(ctx context.Context) ([]*entity.BookInfo, error)
+        + ListNewestRank(ctx context.Context) ([]*entity.BookInfo, error)
+        + ListUpdateRank(ctx context.Context) ([]*entity.BookInfo, error)
+        + ListNewestComments(ctx context.Context, bookId int) ([]*model.Comment, int, error)
+
+    }
+    class sUser << (S,Aquamarine) >> {
+        + NewCaptcha(ctx context.Context) (string, string, string, error)
+        + VerifyCaptcha(ctx context.Context, id string, inputCaptcha string) (bool, error)
+        + Create(ctx context.Context, in model.UserCreateInput) (string, int, string, error)
+        + IsUsernameRepeat(ctx context.Context, in model.UserCreateInput) (bool, error)
+        + Login(ctx context.Context, in model.UserLoginInput) (string, int, string, error)
+
+    }
+}
+
+"service.IBook" <|-- "book.sBook"
+"service.IUser" <|-- "book.sUser"
+
+namespace consts {
+    class CacheConfig << (S,Aquamarine) >> {
+        + Name string
+        + TTL int
+        + MaxSize int
+
+    }
+}
+
+
+namespace dao {
+    class authorCodeDao << (S,Aquamarine) >> {
+    }
+    class authorIncomeDao << (S,Aquamarine) >> {
+    }
+    class authorIncomeDetailDao << (S,Aquamarine) >> {
+    }
+    class authorInfoDao << (S,Aquamarine) >> {
+    }
+    class bookCategoryDao << (S,Aquamarine) >> {
+    }
+    class bookChapterDao << (S,Aquamarine) >> {
+    }
+    class bookCommentCopy1Dao << (S,Aquamarine) >> {
+    }
+    class bookCommentDao << (S,Aquamarine) >> {
+    }
+    class bookCommentReplyDao << (S,Aquamarine) >> {
+    }
+    class bookContentDao << (S,Aquamarine) >> {
+    }
+    class bookInfoDao << (S,Aquamarine) >> {
+    }
+    class dao.internalAuthorCodeDao << (T, #FF7700) >>  {
+    }
+    class dao.internalAuthorIncomeDao << (T, #FF7700) >>  {
+    }
+    class dao.internalAuthorIncomeDetailDao << (T, #FF7700) >>  {
+    }
+    class dao.internalAuthorInfoDao << (T, #FF7700) >>  {
+    }
+    class dao.internalBookCategoryDao << (T, #FF7700) >>  {
+    }
+    class dao.internalBookChapterDao << (T, #FF7700) >>  {
+    }
+    class dao.internalBookCommentCopy1Dao << (T, #FF7700) >>  {
+    }
+    class dao.internalBookCommentDao << (T, #FF7700) >>  {
+    }
+    class dao.internalBookCommentReplyDao << (T, #FF7700) >>  {
+    }
+    class dao.internalBookContentDao << (T, #FF7700) >>  {
+    }
+    class dao.internalBookInfoDao << (T, #FF7700) >>  {
+    }
+    class dao.internalHomeBookDao << (T, #FF7700) >>  {
+    }
+    class dao.internalHomeFriendLinkDao << (T, #FF7700) >>  {
+    }
+    class dao.internalNewsCategoryDao << (T, #FF7700) >>  {
+    }
+    class dao.internalNewsContentDao << (T, #FF7700) >>  {
+    }
+    class dao.internalNewsInfoDao << (T, #FF7700) >>  {
+    }
+    class dao.internalPayAlipayDao << (T, #FF7700) >>  {
+    }
+    class dao.internalPayWechatDao << (T, #FF7700) >>  {
+    }
+    class dao.internalSysLogDao << (T, #FF7700) >>  {
+    }
+    class dao.internalSysMenuDao << (T, #FF7700) >>  {
+    }
+    class dao.internalSysRoleDao << (T, #FF7700) >>  {
+    }
+    class dao.internalSysRoleMenuDao << (T, #FF7700) >>  {
+    }
+    class dao.internalSysUserDao << (T, #FF7700) >>  {
+    }
+    class dao.internalSysUserRoleDao << (T, #FF7700) >>  {
+    }
+    class dao.internalTestDao << (T, #FF7700) >>  {
+    }
+    class dao.internalUserBookshelfDao << (T, #FF7700) >>  {
+    }
+    class dao.internalUserCommentDao << (T, #FF7700) >>  {
+    }
+    class dao.internalUserCommentReplyDao << (T, #FF7700) >>  {
+    }
+    class dao.internalUserConsumeLogDao << (T, #FF7700) >>  {
+    }
+    class dao.internalUserFeedbackDao << (T, #FF7700) >>  {
+    }
+    class dao.internalUserInfoDao << (T, #FF7700) >>  {
+    }
+    class dao.internalUserPayLogDao << (T, #FF7700) >>  {
+    }
+    class dao.internalUserReadHistoryDao << (T, #FF7700) >>  {
+    }
+    class homeBookDao << (S,Aquamarine) >> {
+    }
+    class homeFriendLinkDao << (S,Aquamarine) >> {
+    }
+    class newsCategoryDao << (S,Aquamarine) >> {
+    }
+    class newsContentDao << (S,Aquamarine) >> {
+    }
+    class newsInfoDao << (S,Aquamarine) >> {
+    }
+    class payAlipayDao << (S,Aquamarine) >> {
+    }
+    class payWechatDao << (S,Aquamarine) >> {
+    }
+    class sysLogDao << (S,Aquamarine) >> {
+    }
+    class sysMenuDao << (S,Aquamarine) >> {
+    }
+    class sysRoleDao << (S,Aquamarine) >> {
+    }
+    class sysRoleMenuDao << (S,Aquamarine) >> {
+    }
+    class sysUserDao << (S,Aquamarine) >> {
+    }
+    class sysUserRoleDao << (S,Aquamarine) >> {
+    }
+    class testDao << (S,Aquamarine) >> {
+    }
+    class userBookshelfDao << (S,Aquamarine) >> {
+    }
+    class userCommentDao << (S,Aquamarine) >> {
+    }
+    class userCommentReplyDao << (S,Aquamarine) >> {
+    }
+    class userConsumeLogDao << (S,Aquamarine) >> {
+    }
+    class userFeedbackDao << (S,Aquamarine) >> {
+    }
+    class userInfoDao << (S,Aquamarine) >> {
+    }
+    class userPayLogDao << (S,Aquamarine) >> {
+    }
+    class userReadHistoryDao << (S,Aquamarine) >> {
+    }
+    class "*internal.AuthorCodeDao" as internalAuthorCodeDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.AuthorIncomeDao" as internalAuthorIncomeDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.AuthorIncomeDetailDao" as internalAuthorIncomeDetailDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.AuthorInfoDao" as internalAuthorInfoDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.BookCategoryDao" as internalBookCategoryDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.BookChapterDao" as internalBookChapterDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.BookCommentCopy1Dao" as internalBookCommentCopy1Dao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.BookCommentDao" as internalBookCommentDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.BookCommentReplyDao" as internalBookCommentReplyDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.BookContentDao" as internalBookContentDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.BookInfoDao" as internalBookInfoDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.HomeBookDao" as internalHomeBookDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.HomeFriendLinkDao" as internalHomeFriendLinkDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.NewsCategoryDao" as internalNewsCategoryDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.NewsContentDao" as internalNewsContentDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.NewsInfoDao" as internalNewsInfoDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.PayAlipayDao" as internalPayAlipayDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.PayWechatDao" as internalPayWechatDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.SysLogDao" as internalSysLogDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.SysMenuDao" as internalSysMenuDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.SysRoleDao" as internalSysRoleDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.SysRoleMenuDao" as internalSysRoleMenuDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.SysUserDao" as internalSysUserDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.SysUserRoleDao" as internalSysUserRoleDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.TestDao" as internalTestDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.UserBookshelfDao" as internalUserBookshelfDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.UserCommentDao" as internalUserCommentDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.UserCommentReplyDao" as internalUserCommentReplyDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.UserConsumeLogDao" as internalUserConsumeLogDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.UserFeedbackDao" as internalUserFeedbackDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.UserInfoDao" as internalUserInfoDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.UserPayLogDao" as internalUserPayLogDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "*internal.UserReadHistoryDao" as internalUserReadHistoryDao {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+}
+"dao.internalAuthorCodeDao" *-- "dao.authorCodeDao"
+"dao.internalAuthorIncomeDao" *-- "dao.authorIncomeDao"
+"dao.internalAuthorIncomeDetailDao" *-- "dao.authorIncomeDetailDao"
+"dao.internalAuthorInfoDao" *-- "dao.authorInfoDao"
+"dao.internalBookCategoryDao" *-- "dao.bookCategoryDao"
+"dao.internalBookChapterDao" *-- "dao.bookChapterDao"
+"dao.internalBookCommentCopy1Dao" *-- "dao.bookCommentCopy1Dao"
+"dao.internalBookCommentDao" *-- "dao.bookCommentDao"
+"dao.internalBookCommentReplyDao" *-- "dao.bookCommentReplyDao"
+"dao.internalBookContentDao" *-- "dao.bookContentDao"
+"dao.internalBookInfoDao" *-- "dao.bookInfoDao"
+"dao.internalHomeBookDao" *-- "dao.homeBookDao"
+"dao.internalHomeFriendLinkDao" *-- "dao.homeFriendLinkDao"
+"dao.internalNewsCategoryDao" *-- "dao.newsCategoryDao"
+"dao.internalNewsContentDao" *-- "dao.newsContentDao"
+"dao.internalNewsInfoDao" *-- "dao.newsInfoDao"
+"dao.internalPayAlipayDao" *-- "dao.payAlipayDao"
+"dao.internalPayWechatDao" *-- "dao.payWechatDao"
+"dao.internalSysLogDao" *-- "dao.sysLogDao"
+"dao.internalSysMenuDao" *-- "dao.sysMenuDao"
+"dao.internalSysRoleDao" *-- "dao.sysRoleDao"
+"dao.internalSysRoleMenuDao" *-- "dao.sysRoleMenuDao"
+"dao.internalSysUserDao" *-- "dao.sysUserDao"
+"dao.internalSysUserRoleDao" *-- "dao.sysUserRoleDao"
+"dao.internalTestDao" *-- "dao.testDao"
+"dao.internalUserBookshelfDao" *-- "dao.userBookshelfDao"
+"dao.internalUserCommentDao" *-- "dao.userCommentDao"
+"dao.internalUserCommentReplyDao" *-- "dao.userCommentReplyDao"
+"dao.internalUserConsumeLogDao" *-- "dao.userConsumeLogDao"
+"dao.internalUserFeedbackDao" *-- "dao.userFeedbackDao"
+"dao.internalUserInfoDao" *-- "dao.userInfoDao"
+"dao.internalUserPayLogDao" *-- "dao.userPayLogDao"
+"dao.internalUserReadHistoryDao" *-- "dao.userReadHistoryDao"
+
+
+namespace do {
+    class AuthorCode << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + InviteCode <font color=blue>interface</font>{}
+        + ValidityTime *gtime.Time
+        + IsUsed <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class AuthorIncome << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + AuthorId <font color=blue>interface</font>{}
+        + BookId <font color=blue>interface</font>{}
+        + IncomeMonth *gtime.Time
+        + PreTaxIncome <font color=blue>interface</font>{}
+        + AfterTaxIncome <font color=blue>interface</font>{}
+        + PayStatus <font color=blue>interface</font>{}
+        + ConfirmStatus <font color=blue>interface</font>{}
+        + Detail <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class AuthorIncomeDetail << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + AuthorId <font color=blue>interface</font>{}
+        + BookId <font color=blue>interface</font>{}
+        + IncomeDate *gtime.Time
+        + IncomeAccount <font color=blue>interface</font>{}
+        + IncomeCount <font color=blue>interface</font>{}
+        + IncomeNumber <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class AuthorInfo << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + UserId <font color=blue>interface</font>{}
+        + InviteCode <font color=blue>interface</font>{}
+        + PenName <font color=blue>interface</font>{}
+        + TelPhone <font color=blue>interface</font>{}
+        + ChatAccount <font color=blue>interface</font>{}
+        + Email <font color=blue>interface</font>{}
+        + WorkDirection <font color=blue>interface</font>{}
+        + Status <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class BookCategory << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + WorkDirection <font color=blue>interface</font>{}
+        + Name <font color=blue>interface</font>{}
+        + Sort <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class BookChapter << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + BookId <font color=blue>interface</font>{}
+        + ChapterNum <font color=blue>interface</font>{}
+        + ChapterName <font color=blue>interface</font>{}
+        + WordCount <font color=blue>interface</font>{}
+        + IsVip <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class BookComment << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + BookId <font color=blue>interface</font>{}
+        + UserId <font color=blue>interface</font>{}
+        + CommentContent <font color=blue>interface</font>{}
+        + ReplyCount <font color=blue>interface</font>{}
+        + AuditStatus <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class BookCommentCopy1 << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + BookId <font color=blue>interface</font>{}
+        + UserId <font color=blue>interface</font>{}
+        + CommentContent <font color=blue>interface</font>{}
+        + ReplyCount <font color=blue>interface</font>{}
+        + AuditStatus <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class BookCommentReply << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + CommentId <font color=blue>interface</font>{}
+        + UserId <font color=blue>interface</font>{}
+        + ReplyContent <font color=blue>interface</font>{}
+        + AuditStatus <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class BookContent << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + ChapterId <font color=blue>interface</font>{}
+        + Content <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class BookInfo << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + WorkDirection <font color=blue>interface</font>{}
+        + CategoryId <font color=blue>interface</font>{}
+        + CategoryName <font color=blue>interface</font>{}
+        + PicUrl <font color=blue>interface</font>{}
+        + BookName <font color=blue>interface</font>{}
+        + AuthorId <font color=blue>interface</font>{}
+        + AuthorName <font color=blue>interface</font>{}
+        + BookDesc <font color=blue>interface</font>{}
+        + Score <font color=blue>interface</font>{}
+        + BookStatus <font color=blue>interface</font>{}
+        + VisitCount <font color=blue>interface</font>{}
+        + WordCount <font color=blue>interface</font>{}
+        + CommentCount <font color=blue>interface</font>{}
+        + LastChapterId <font color=blue>interface</font>{}
+        + LastChapterName <font color=blue>interface</font>{}
+        + LastChapterUpdateTime *gtime.Time
+        + IsVip <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class HomeBook << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + Type <font color=blue>interface</font>{}
+        + Sort <font color=blue>interface</font>{}
+        + BookId <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class HomeFriendLink << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + LinkName <font color=blue>interface</font>{}
+        + LinkUrl <font color=blue>interface</font>{}
+        + Sort <font color=blue>interface</font>{}
+        + IsOpen <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class NewsCategory << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + Name <font color=blue>interface</font>{}
+        + Sort <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class NewsContent << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + NewsId <font color=blue>interface</font>{}
+        + Content <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class NewsInfo << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + CategoryId <font color=blue>interface</font>{}
+        + CategoryName <font color=blue>interface</font>{}
+        + SourceName <font color=blue>interface</font>{}
+        + Title <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class PayAlipay << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + OutTradeNo <font color=blue>interface</font>{}
+        + TradeNo <font color=blue>interface</font>{}
+        + BuyerId <font color=blue>interface</font>{}
+        + TradeStatus <font color=blue>interface</font>{}
+        + TotalAmount <font color=blue>interface</font>{}
+        + ReceiptAmount <font color=blue>interface</font>{}
+        + InvoiceAmount <font color=blue>interface</font>{}
+        + GmtCreate *gtime.Time
+        + GmtPayment *gtime.Time
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class PayWechat << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + OutTradeNo <font color=blue>interface</font>{}
+        + TransactionId <font color=blue>interface</font>{}
+        + TradeType <font color=blue>interface</font>{}
+        + TradeState <font color=blue>interface</font>{}
+        + TradeStateDesc <font color=blue>interface</font>{}
+        + Amount <font color=blue>interface</font>{}
+        + PayerTotal <font color=blue>interface</font>{}
+        + SuccessTime *gtime.Time
+        + PayerOpenid <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class SysLog << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + UserId <font color=blue>interface</font>{}
+        + Username <font color=blue>interface</font>{}
+        + Operation <font color=blue>interface</font>{}
+        + Time <font color=blue>interface</font>{}
+        + Method <font color=blue>interface</font>{}
+        + Params <font color=blue>interface</font>{}
+        + Ip <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+
+    }
+    class SysMenu << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + ParentId <font color=blue>interface</font>{}
+        + Name <font color=blue>interface</font>{}
+        + Url <font color=blue>interface</font>{}
+        + Type <font color=blue>interface</font>{}
+        + Icon <font color=blue>interface</font>{}
+        + Sort <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class SysRole << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + RoleName <font color=blue>interface</font>{}
+        + RoleSign <font color=blue>interface</font>{}
+        + Remark <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class SysRoleMenu << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + RoleId <font color=blue>interface</font>{}
+        + MenuId <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class SysUser << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + Username <font color=blue>interface</font>{}
+        + Password <font color=blue>interface</font>{}
+        + Name <font color=blue>interface</font>{}
+        + Sex <font color=blue>interface</font>{}
+        + Birth *gtime.Time
+        + Email <font color=blue>interface</font>{}
+        + Mobile <font color=blue>interface</font>{}
+        + Status <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class SysUserRole << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + UserId <font color=blue>interface</font>{}
+        + RoleId <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class Test << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + Test <font color=blue>interface</font>{}
+        + Test2 <font color=blue>interface</font>{}
+
+    }
+    class UserBookshelf << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + UserId <font color=blue>interface</font>{}
+        + BookId <font color=blue>interface</font>{}
+        + PreContentId <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class UserComment << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + UserId <font color=blue>interface</font>{}
+        + BookId <font color=blue>interface</font>{}
+        + CommentContent <font color=blue>interface</font>{}
+        + ReplyCount <font color=blue>interface</font>{}
+        + AuditStatus <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class UserCommentReply << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + CommentId <font color=blue>interface</font>{}
+        + UserId <font color=blue>interface</font>{}
+        + ReplyContent <font color=blue>interface</font>{}
+        + AuditStatus <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class UserConsumeLog << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + UserId <font color=blue>interface</font>{}
+        + Amount <font color=blue>interface</font>{}
+        + ProductType <font color=blue>interface</font>{}
+        + ProductId <font color=blue>interface</font>{}
+        + ProducName <font color=blue>interface</font>{}
+        + ProducValue <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class UserFeedback << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + UserId <font color=blue>interface</font>{}
+        + Content <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class UserInfo << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + Username <font color=blue>interface</font>{}
+        + Password <font color=blue>interface</font>{}
+        + Salt <font color=blue>interface</font>{}
+        + NickName <font color=blue>interface</font>{}
+        + UserPhoto <font color=blue>interface</font>{}
+        + UserSex <font color=blue>interface</font>{}
+        + AccountBalance <font color=blue>interface</font>{}
+        + Status <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class UserPayLog << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + UserId <font color=blue>interface</font>{}
+        + PayChannel <font color=blue>interface</font>{}
+        + OutTradeNo <font color=blue>interface</font>{}
+        + Amount <font color=blue>interface</font>{}
+        + ProductType <font color=blue>interface</font>{}
+        + ProductId <font color=blue>interface</font>{}
+        + ProductName <font color=blue>interface</font>{}
+        + ProductValue <font color=blue>interface</font>{}
+        + PayTime *gtime.Time
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class UserReadHistory << (S,Aquamarine) >> {
+        + Id <font color=blue>interface</font>{}
+        + UserId <font color=blue>interface</font>{}
+        + BookId <font color=blue>interface</font>{}
+        + PreContentId <font color=blue>interface</font>{}
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+}
+"g.Meta" *-- "do.AuthorCode"
+"g.Meta" *-- "do.AuthorIncome"
+"g.Meta" *-- "do.AuthorIncomeDetail"
+"g.Meta" *-- "do.AuthorInfo"
+"g.Meta" *-- "do.BookCategory"
+"g.Meta" *-- "do.BookChapter"
+"g.Meta" *-- "do.BookComment"
+"g.Meta" *-- "do.BookCommentCopy1"
+"g.Meta" *-- "do.BookCommentReply"
+"g.Meta" *-- "do.BookContent"
+"g.Meta" *-- "do.BookInfo"
+"g.Meta" *-- "do.HomeBook"
+"g.Meta" *-- "do.HomeFriendLink"
+"g.Meta" *-- "do.NewsCategory"
+"g.Meta" *-- "do.NewsContent"
+"g.Meta" *-- "do.NewsInfo"
+"g.Meta" *-- "do.PayAlipay"
+"g.Meta" *-- "do.PayWechat"
+"g.Meta" *-- "do.SysLog"
+"g.Meta" *-- "do.SysMenu"
+"g.Meta" *-- "do.SysRole"
+"g.Meta" *-- "do.SysRoleMenu"
+"g.Meta" *-- "do.SysUser"
+"g.Meta" *-- "do.SysUserRole"
+"g.Meta" *-- "do.Test"
+"g.Meta" *-- "do.UserBookshelf"
+"g.Meta" *-- "do.UserComment"
+"g.Meta" *-- "do.UserCommentReply"
+"g.Meta" *-- "do.UserConsumeLog"
+"g.Meta" *-- "do.UserFeedback"
+"g.Meta" *-- "do.UserInfo"
+"g.Meta" *-- "do.UserPayLog"
+"g.Meta" *-- "do.UserReadHistory"
+
+
+namespace entity {
+    class AuthorCode << (S,Aquamarine) >> {
+        + Id uint64
+        + InviteCode string
+        + ValidityTime *gtime.Time
+        + IsUsed uint
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class AuthorIncome << (S,Aquamarine) >> {
+        + Id uint64
+        + AuthorId uint64
+        + BookId uint64
+        + IncomeMonth *gtime.Time
+        + PreTaxIncome uint
+        + AfterTaxIncome uint
+        + PayStatus uint
+        + ConfirmStatus uint
+        + Detail string
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class AuthorIncomeDetail << (S,Aquamarine) >> {
+        + Id uint64
+        + AuthorId uint64
+        + BookId uint64
+        + IncomeDate *gtime.Time
+        + IncomeAccount uint
+        + IncomeCount uint
+        + IncomeNumber uint
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class AuthorInfo << (S,Aquamarine) >> {
+        + Id uint64
+        + UserId uint64
+        + InviteCode string
+        + PenName string
+        + TelPhone string
+        + ChatAccount string
+        + Email string
+        + WorkDirection uint
+        + Status uint
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class BookCategory << (S,Aquamarine) >> {
+        + Id uint64
+        + WorkDirection uint
+        + Name string
+        + Sort uint
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class BookChapter << (S,Aquamarine) >> {
+        + Id uint64
+        + BookId uint64
+        + ChapterNum uint
+        + ChapterName string
+        + WordCount uint
+        + IsVip uint
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class BookComment << (S,Aquamarine) >> {
+        + Id uint64
+        + BookId uint64
+        + UserId uint64
+        + CommentContent string
+        + ReplyCount uint
+        + AuditStatus uint
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class BookCommentCopy1 << (S,Aquamarine) >> {
+        + Id uint64
+        + BookId uint64
+        + UserId uint64
+        + CommentContent string
+        + ReplyCount uint
+        + AuditStatus uint
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class BookCommentReply << (S,Aquamarine) >> {
+        + Id uint64
+        + CommentId uint64
+        + UserId uint64
+        + ReplyContent string
+        + AuditStatus uint
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class BookContent << (S,Aquamarine) >> {
+        + Id uint64
+        + ChapterId uint64
+        + Content string
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class BookInfo << (S,Aquamarine) >> {
+        + Id uint64
+        + WorkDirection uint
+        + CategoryId uint64
+        + CategoryName string
+        + PicUrl string
+        + BookName string
+        + AuthorId uint64
+        + AuthorName string
+        + BookDesc string
+        + Score uint
+        + BookStatus uint
+        + VisitCount uint64
+        + WordCount uint
+        + CommentCount uint
+        + LastChapterId uint64
+        + LastChapterName string
+        + LastChapterUpdateTime *gtime.Time
+        + IsVip uint
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class HomeBook << (S,Aquamarine) >> {
+        + Id uint64
+        + Type uint
+        + Sort uint
+        + BookId uint64
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class HomeFriendLink << (S,Aquamarine) >> {
+        + Id uint64
+        + LinkName string
+        + LinkUrl string
+        + Sort uint
+        + IsOpen uint
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class NewsCategory << (S,Aquamarine) >> {
+        + Id uint64
+        + Name string
+        + Sort uint
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class NewsContent << (S,Aquamarine) >> {
+        + Id uint64
+        + NewsId uint64
+        + Content string
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class NewsInfo << (S,Aquamarine) >> {
+        + Id uint64
+        + CategoryId uint64
+        + CategoryName string
+        + SourceName string
+        + Title string
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class PayAlipay << (S,Aquamarine) >> {
+        + Id uint64
+        + OutTradeNo string
+        + TradeNo string
+        + BuyerId string
+        + TradeStatus string
+        + TotalAmount uint
+        + ReceiptAmount uint
+        + InvoiceAmount uint
+        + GmtCreate *gtime.Time
+        + GmtPayment *gtime.Time
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class PayWechat << (S,Aquamarine) >> {
+        + Id uint64
+        + OutTradeNo string
+        + TransactionId string
+        + TradeType string
+        + TradeState string
+        + TradeStateDesc string
+        + Amount uint
+        + PayerTotal uint
+        + SuccessTime *gtime.Time
+        + PayerOpenid string
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class SysLog << (S,Aquamarine) >> {
+        + Id uint64
+        + UserId uint64
+        + Username string
+        + Operation string
+        + Time uint
+        + Method string
+        + Params string
+        + Ip string
+        + CreateTime *gtime.Time
+
+    }
+    class SysMenu << (S,Aquamarine) >> {
+        + Id uint64
+        + ParentId uint64
+        + Name string
+        + Url string
+        + Type uint
+        + Icon string
+        + Sort uint
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class SysRole << (S,Aquamarine) >> {
+        + Id uint64
+        + RoleName string
+        + RoleSign string
+        + Remark string
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class SysRoleMenu << (S,Aquamarine) >> {
+        + Id uint64
+        + RoleId uint64
+        + MenuId uint64
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class SysUser << (S,Aquamarine) >> {
+        + Id uint64
+        + Username string
+        + Password string
+        + Name string
+        + Sex uint
+        + Birth *gtime.Time
+        + Email string
+        + Mobile string
+        + Status uint
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class SysUserRole << (S,Aquamarine) >> {
+        + Id uint64
+        + UserId uint64
+        + RoleId uint64
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class Test << (S,Aquamarine) >> {
+        + Id int
+        + Test uint
+        + Test2 uint
+
+    }
+    class UserBookshelf << (S,Aquamarine) >> {
+        + Id uint64
+        + UserId uint64
+        + BookId uint64
+        + PreContentId uint64
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class UserComment << (S,Aquamarine) >> {
+        + Id uint64
+        + UserId uint64
+        + BookId uint64
+        + CommentContent string
+        + ReplyCount uint
+        + AuditStatus uint
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class UserCommentReply << (S,Aquamarine) >> {
+        + Id uint64
+        + CommentId uint64
+        + UserId uint64
+        + ReplyContent string
+        + AuditStatus uint
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class UserConsumeLog << (S,Aquamarine) >> {
+        + Id uint64
+        + UserId uint64
+        + Amount uint
+        + ProductType uint
+        + ProductId uint64
+        + ProducName string
+        + ProducValue uint
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class UserFeedback << (S,Aquamarine) >> {
+        + Id uint64
+        + UserId uint64
+        + Content string
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class UserInfo << (S,Aquamarine) >> {
+        + Id uint64
+        + Username string
+        + Password string
+        + Salt string
+        + NickName string
+        + UserPhoto string
+        + UserSex uint
+        + AccountBalance uint64
+        + Status uint
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class UserPayLog << (S,Aquamarine) >> {
+        + Id uint64
+        + UserId uint64
+        + PayChannel uint
+        + OutTradeNo string
+        + Amount uint
+        + ProductType uint
+        + ProductId uint64
+        + ProductName string
+        + ProductValue uint
+        + PayTime *gtime.Time
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+    class UserReadHistory << (S,Aquamarine) >> {
+        + Id uint64
+        + UserId uint64
+        + BookId uint64
+        + PreContentId uint64
+        + CreateTime *gtime.Time
+        + UpdateTime *gtime.Time
+
+    }
+}
+
+
+namespace frontend {
+    class BookControllerV1 << (S,Aquamarine) >> {
+        + ListChapters(ctx context.Context, req *v1.ListChaptersReq) ([]*v1.ListChaptersRes, error)
+        + GetBookContentAbout(ctx context.Context, req *v1.GetBookContentAboutReq) (*v1.GetBookContentAboutRes, error)
+        + GetBookInfoById(ctx context.Context, req *v1.GetBookInfoByIdReq) (*v1.GetBookInfoByIdRes, error)
+        + GetLastChapterAbout(ctx context.Context, req *v1.GetLastChapterAboutReq) (*v1.GetLastChapterAboutRes, error)
+        + ListBookComment(ctx context.Context, req *v1.ListBookCommentReq) (*v1.ListBookCommentRes, error)
+        + ListBookCategory(ctx context.Context, req *v1.ListBookCategoryReq) ([]*v1.ListBookCategoryRes, error)
+        + GetBookNewestRank(ctx context.Context, req *v1.GetBookNewestRankReq) ([]*v1.GetBookNewestRankRes, error)
+        + GetNextChapterId(ctx context.Context, req *v1.GetNextChapterIdReq) (*v1.GetNextChapterIdRes, error)
+        + GetPreChapterId(ctx context.Context, req *v1.GetPreChapterIdReq) (*v1.GetPreChapterIdRes, error)
+        + ListRecommendedBooks(ctx context.Context, req *v1.ListRecommendedBooksReq) ([]*v1.ListRecommendedBooksRes, error)
+        + GetBookUpdateRank(ctx context.Context, req *v1.GetBookUpdateRankReq) ([]*v1.GetBookUpdateRankRes, error)
+        + AddBookVisit(ctx context.Context, req *v1.AddBookVisitReq) (*v1.AddBookVisitRes, error)
+        + GetBookVisitRank(ctx context.Context, req *v1.GetBookVisitRankReq) ([]*v1.GetBookVisitRankRes, error)
+
+    }
+    class HomeControllerV1 << (S,Aquamarine) >> {
+        + QueryFriendLinkBooks(ctx context.Context, req *v1.QueryFriendLinkBooksReq) ([]*v1.QueryFriendLinkBooksRes, error)
+        + QueryRecommendedBooks(ctx context.Context, req *v1.QueryRecommendedBooksReq) ([]*v1.QueryRecommendedBooksRes, error)
+
+    }
+    interface IFrontendV1  {
+        + AddBookVisit(ctx context.Context, req *v1.AddBookVisitReq) (*v1.AddBookVisitRes, error)
+        + ListBookCategory(ctx context.Context, req *v1.ListBookCategoryReq) ([]*v1.ListBookCategoryRes, error)
+        + GetBookInfoById(ctx context.Context, req *v1.GetBookInfoByIdReq) (*v1.GetBookInfoByIdRes, error)
+        + GetLastChapterAbout(ctx context.Context, req *v1.GetLastChapterAboutReq) (*v1.GetLastChapterAboutRes, error)
+        + ListRecommendedBooks(ctx context.Context, req *v1.ListRecommendedBooksReq) ([]*v1.ListRecommendedBooksRes, error)
+        + ListChapters(ctx context.Context, req *v1.ListChaptersReq) ([]*v1.ListChaptersRes, error)
+        + GetBookContentAbout(ctx context.Context, req *v1.GetBookContentAboutReq) (*v1.GetBookContentAboutRes, error)
+        + GetPreChapterId(ctx context.Context, req *v1.GetPreChapterIdReq) (*v1.GetPreChapterIdRes, error)
+        + GetNextChapterId(ctx context.Context, req *v1.GetNextChapterIdReq) (*v1.GetNextChapterIdRes, error)
+        + GetBookVisitRank(ctx context.Context, req *v1.GetBookVisitRankReq) ([]*v1.GetBookVisitRankRes, error)
+        + GetBookNewestRank(ctx context.Context, req *v1.GetBookNewestRankReq) ([]*v1.GetBookNewestRankRes, error)
+        + GetBookUpdateRank(ctx context.Context, req *v1.GetBookUpdateRankReq) ([]*v1.GetBookUpdateRankRes, error)
+        + ListBookComment(ctx context.Context, req *v1.ListBookCommentReq) (*v1.ListBookCommentRes, error)
+
+    }
+    interface IHomeV1  {
+        + QueryRecommendedBooks(ctx context.Context, req *v1.QueryRecommendedBooksReq) ([]*v1.QueryRecommendedBooksRes, error)
+        + QueryFriendLinkBooks(ctx context.Context, req *v1.QueryFriendLinkBooksReq) ([]*v1.QueryFriendLinkBooksRes, error)
+
+    }
+    interface INewsV1  {
+        + QueryNewsInfo(ctx context.Context, req *v1.QueryNewsInfoReq) (*v1.QueryNewsInfoRes, error)
+        + QueryNewsLatestInfo(ctx context.Context, req *v1.QueryNewsLatestInfoReq) ([]*v1.QueryNewsLatestInfoRes, error)
+
+    }
+    interface ISearchV1  {
+        + SearchBooks(ctx context.Context, req *v1.SearchBooksReq) (*v1.SearchBooksRes, error)
+
+    }
+    interface IUserV1  {
+        + GetCaptcha(ctx context.Context, req *v1.GetCaptchaReq) (*v1.GetCaptchaRes, error)
+        + SignUp(ctx context.Context, req *v1.SignUpReq) (*v1.SignUpRes, error)
+        + SignIn(ctx context.Context, req *v1.SignInReq) (*v1.SignInRes, error)
+
+    }
+    interface IUtilV1  {
+        + ResourceImages(ctx context.Context, req *v1.ResourceImageReq) (*v1.ResourceImageRes, error)
+
+    }
+    class NewsControllerV1 << (S,Aquamarine) >> {
+        + QueryNewsLatestInfo(ctx context.Context, req *v1.QueryNewsLatestInfoReq) ([]*v1.QueryNewsLatestInfoRes, error)
+        + QueryNewsInfo(ctx context.Context, req *v1.QueryNewsInfoReq) (*v1.QueryNewsInfoRes, error)
+
+    }
+    class SearchControllerV1 << (S,Aquamarine) >> {
+        + SearchBooks(ctx context.Context, req *v1.SearchBooksReq) (*v1.SearchBooksRes, error)
+
+    }
+    class UserControllerV1 << (S,Aquamarine) >> {
+        + GetCaptcha(ctx context.Context, req *v1.GetCaptchaReq) (*v1.GetCaptchaRes, error)
+        + SignIn(ctx context.Context, req *v1.SignInReq) (*v1.SignInRes, error)
+        + SignUp(ctx context.Context, req *v1.SignUpReq) (*v1.SignUpRes, error)
+
+    }
+    class UtilControllerV1 << (S,Aquamarine) >> {
+        + ResourceImages(ctx context.Context, req *v1.ResourceImageReq) (*v1.ResourceImageRes, error)
+
+    }
+}
+
+"frontend.IFrontendV1" <|-- "frontend.BookControllerV1"
+"frontend.IHomeV1" <|-- "frontend.HomeControllerV1"
+"frontend.INewsV1" <|-- "frontend.NewsControllerV1"
+"frontend.ISearchV1" <|-- "frontend.SearchControllerV1"
+"frontend.IUserV1" <|-- "frontend.UserControllerV1"
+"frontend.IUtilV1" <|-- "frontend.UtilControllerV1"
+
+namespace home {
+    class sHome << (S,Aquamarine) >> {
+        + FindRecommendBook(ctx context.Context) ([]model.RecommendedBooks, error)
+        + QueryFriendLinkList(ctx context.Context) ([]entity.HomeFriendLink, error)
+
+    }
+}
+
+"service.IHome" <|-- "home.sHome"
+
+namespace internal {
+    class AuthorCodeColumns << (S,Aquamarine) >> {
+        + Id string
+        + InviteCode string
+        + ValidityTime string
+        + IsUsed string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class AuthorCodeDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns AuthorCodeColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() AuthorCodeColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class AuthorIncomeColumns << (S,Aquamarine) >> {
+        + Id string
+        + AuthorId string
+        + BookId string
+        + IncomeMonth string
+        + PreTaxIncome string
+        + AfterTaxIncome string
+        + PayStatus string
+        + ConfirmStatus string
+        + Detail string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class AuthorIncomeDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns AuthorIncomeColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() AuthorIncomeColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class AuthorIncomeDetailColumns << (S,Aquamarine) >> {
+        + Id string
+        + AuthorId string
+        + BookId string
+        + IncomeDate string
+        + IncomeAccount string
+        + IncomeCount string
+        + IncomeNumber string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class AuthorIncomeDetailDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns AuthorIncomeDetailColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() AuthorIncomeDetailColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class AuthorInfoColumns << (S,Aquamarine) >> {
+        + Id string
+        + UserId string
+        + InviteCode string
+        + PenName string
+        + TelPhone string
+        + ChatAccount string
+        + Email string
+        + WorkDirection string
+        + Status string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class AuthorInfoDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns AuthorInfoColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() AuthorInfoColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class BookCategoryColumns << (S,Aquamarine) >> {
+        + Id string
+        + WorkDirection string
+        + Name string
+        + Sort string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class BookCategoryDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns BookCategoryColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() BookCategoryColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class BookChapterColumns << (S,Aquamarine) >> {
+        + Id string
+        + BookId string
+        + ChapterNum string
+        + ChapterName string
+        + WordCount string
+        + IsVip string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class BookChapterDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns BookChapterColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() BookChapterColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class BookCommentColumns << (S,Aquamarine) >> {
+        + Id string
+        + BookId string
+        + UserId string
+        + CommentContent string
+        + ReplyCount string
+        + AuditStatus string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class BookCommentCopy1Columns << (S,Aquamarine) >> {
+        + Id string
+        + BookId string
+        + UserId string
+        + CommentContent string
+        + ReplyCount string
+        + AuditStatus string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class BookCommentCopy1Dao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns BookCommentCopy1Columns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() BookCommentCopy1Columns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class BookCommentDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns BookCommentColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() BookCommentColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class BookCommentReplyColumns << (S,Aquamarine) >> {
+        + Id string
+        + CommentId string
+        + UserId string
+        + ReplyContent string
+        + AuditStatus string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class BookCommentReplyDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns BookCommentReplyColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() BookCommentReplyColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class BookContentColumns << (S,Aquamarine) >> {
+        + Id string
+        + ChapterId string
+        + Content string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class BookContentDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns BookContentColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() BookContentColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class BookInfoColumns << (S,Aquamarine) >> {
+        + Id string
+        + WorkDirection string
+        + CategoryId string
+        + CategoryName string
+        + PicUrl string
+        + BookName string
+        + AuthorId string
+        + AuthorName string
+        + BookDesc string
+        + Score string
+        + BookStatus string
+        + VisitCount string
+        + WordCount string
+        + CommentCount string
+        + LastChapterId string
+        + LastChapterName string
+        + LastChapterUpdateTime string
+        + IsVip string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class BookInfoDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns BookInfoColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() BookInfoColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class HomeBookColumns << (S,Aquamarine) >> {
+        + Id string
+        + Type string
+        + Sort string
+        + BookId string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class HomeBookDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns HomeBookColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() HomeBookColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class HomeFriendLinkColumns << (S,Aquamarine) >> {
+        + Id string
+        + LinkName string
+        + LinkUrl string
+        + Sort string
+        + IsOpen string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class HomeFriendLinkDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns HomeFriendLinkColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() HomeFriendLinkColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class NewsCategoryColumns << (S,Aquamarine) >> {
+        + Id string
+        + Name string
+        + Sort string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class NewsCategoryDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns NewsCategoryColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() NewsCategoryColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class NewsContentColumns << (S,Aquamarine) >> {
+        + Id string
+        + NewsId string
+        + Content string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class NewsContentDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns NewsContentColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() NewsContentColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class NewsInfoColumns << (S,Aquamarine) >> {
+        + Id string
+        + CategoryId string
+        + CategoryName string
+        + SourceName string
+        + Title string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class NewsInfoDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns NewsInfoColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() NewsInfoColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class PayAlipayColumns << (S,Aquamarine) >> {
+        + Id string
+        + OutTradeNo string
+        + TradeNo string
+        + BuyerId string
+        + TradeStatus string
+        + TotalAmount string
+        + ReceiptAmount string
+        + InvoiceAmount string
+        + GmtCreate string
+        + GmtPayment string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class PayAlipayDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns PayAlipayColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() PayAlipayColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class PayWechatColumns << (S,Aquamarine) >> {
+        + Id string
+        + OutTradeNo string
+        + TransactionId string
+        + TradeType string
+        + TradeState string
+        + TradeStateDesc string
+        + Amount string
+        + PayerTotal string
+        + SuccessTime string
+        + PayerOpenid string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class PayWechatDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns PayWechatColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() PayWechatColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class SysLogColumns << (S,Aquamarine) >> {
+        + Id string
+        + UserId string
+        + Username string
+        + Operation string
+        + Time string
+        + Method string
+        + Params string
+        + Ip string
+        + CreateTime string
+
+    }
+    class SysLogDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns SysLogColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() SysLogColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class SysMenuColumns << (S,Aquamarine) >> {
+        + Id string
+        + ParentId string
+        + Name string
+        + Url string
+        + Type string
+        + Icon string
+        + Sort string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class SysMenuDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns SysMenuColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() SysMenuColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class SysRoleColumns << (S,Aquamarine) >> {
+        + Id string
+        + RoleName string
+        + RoleSign string
+        + Remark string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class SysRoleDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns SysRoleColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() SysRoleColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class SysRoleMenuColumns << (S,Aquamarine) >> {
+        + Id string
+        + RoleId string
+        + MenuId string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class SysRoleMenuDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns SysRoleMenuColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() SysRoleMenuColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class SysUserColumns << (S,Aquamarine) >> {
+        + Id string
+        + Username string
+        + Password string
+        + Name string
+        + Sex string
+        + Birth string
+        + Email string
+        + Mobile string
+        + Status string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class SysUserDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns SysUserColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() SysUserColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class SysUserRoleColumns << (S,Aquamarine) >> {
+        + Id string
+        + UserId string
+        + RoleId string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class SysUserRoleDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns SysUserRoleColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() SysUserRoleColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class TestColumns << (S,Aquamarine) >> {
+        + Id string
+        + Test string
+        + Test2 string
+
+    }
+    class TestDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns TestColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() TestColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class UserBookshelfColumns << (S,Aquamarine) >> {
+        + Id string
+        + UserId string
+        + BookId string
+        + PreContentId string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class UserBookshelfDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns UserBookshelfColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() UserBookshelfColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class UserCommentColumns << (S,Aquamarine) >> {
+        + Id string
+        + UserId string
+        + BookId string
+        + CommentContent string
+        + ReplyCount string
+        + AuditStatus string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class UserCommentDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns UserCommentColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() UserCommentColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class UserCommentReplyColumns << (S,Aquamarine) >> {
+        + Id string
+        + CommentId string
+        + UserId string
+        + ReplyContent string
+        + AuditStatus string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class UserCommentReplyDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns UserCommentReplyColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() UserCommentReplyColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class UserConsumeLogColumns << (S,Aquamarine) >> {
+        + Id string
+        + UserId string
+        + Amount string
+        + ProductType string
+        + ProductId string
+        + ProducName string
+        + ProducValue string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class UserConsumeLogDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns UserConsumeLogColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() UserConsumeLogColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class UserFeedbackColumns << (S,Aquamarine) >> {
+        + Id string
+        + UserId string
+        + Content string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class UserFeedbackDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns UserFeedbackColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() UserFeedbackColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class UserInfoColumns << (S,Aquamarine) >> {
+        + Id string
+        + Username string
+        + Password string
+        + Salt string
+        + NickName string
+        + UserPhoto string
+        + UserSex string
+        + AccountBalance string
+        + Status string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class UserInfoDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns UserInfoColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() UserInfoColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class UserPayLogColumns << (S,Aquamarine) >> {
+        + Id string
+        + UserId string
+        + PayChannel string
+        + OutTradeNo string
+        + Amount string
+        + ProductType string
+        + ProductId string
+        + ProductName string
+        + ProductValue string
+        + PayTime string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class UserPayLogDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns UserPayLogColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() UserPayLogColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+    class UserReadHistoryColumns << (S,Aquamarine) >> {
+        + Id string
+        + UserId string
+        + BookId string
+        + PreContentId string
+        + CreateTime string
+        + UpdateTime string
+
+    }
+    class UserReadHistoryDao << (S,Aquamarine) >> {
+        - table string
+        - group string
+        - columns UserReadHistoryColumns
+
+        + DB() gdb.DB
+        + Table() string
+        + Columns() UserReadHistoryColumns
+        + Group() string
+        + Ctx(ctx context.Context) *gdb.Model
+        + Transaction(ctx context.Context, f <font color=blue>func</font>(context.Context, gdb.TX) error) error
+
+    }
+}
+
+
+namespace middleware {
+    class JsonResponse << (S,Aquamarine) >> {
+        + Code int
+        + Message string
+        + Data <font color=blue>interface</font>{}
+        + Ok bool
+
+    }
+    class sMiddleware << (S,Aquamarine) >> {
+        + MiddlewareHandlerResponse(r *ghttp.Request) 
+        + JWTMiddleware(r *ghttp.Request) 
+        + Cors(r *ghttp.Request) 
+
+    }
+}
+
+"service.IMiddleware" <|-- "middleware.sMiddleware"
+
+namespace model {
+    class AuthorBookInput << (S,Aquamarine) >> {
+        + BookId string
+        + ChapterName string
+        + ChapterContent string
+        + IsVip int
+
+    }
+    class AuthorRegister << (S,Aquamarine) >> {
+        + UserId int
+        + PenName string
+        + TelPhone string
+        + ChatAccount string
+        + Email string
+        + WorkDirection int
+
+    }
+    class BookChapter << (S,Aquamarine) >> {
+        + ChapterName string
+        + ChapterContent string
+        + IsVip int
+
+    }
+    class Comment << (S,Aquamarine) >> {
+        + Id uint64
+        + CommentContent string
+        + CommentUser string
+        + CommentUserId uint64
+        + CommentUserPhoto string
+        + CommentTime *gtime.Time
+
+    }
+    class ListBook << (S,Aquamarine) >> {
+        + BookId string
+        + PageNum int
+        + PageSize int
+
+    }
+    class ListInfo << (S,Aquamarine) >> {
+        + Id int
+        + CategoryId int
+        + CategoryName string
+        + PicUrl string
+        + BookName string
+        + AuthorId int
+        + AuthorName string
+        + BookDesc string
+        + BookStatus int
+        + VisitCount int
+        + WordCount int
+        + CommentCount int
+        + FirstChapterId int
+        + LastChapterId int
+        + LastChapterName string
+        + UpdateTime time.Time
+
+    }
+    class NewsInfo << (S,Aquamarine) >> {
+        + Id int
+        + CategoryId int
+        + CategoryName string
+        + SourceName string
+        + Title string
+        + UpdateTime time.Time
+        + Content string
+
+    }
+    class RecommendedBooks << (S,Aquamarine) >> {
+        + Type int
+        + BookId string
+        + PicUrl string
+        + BookName string
+        + AuthorName string
+        + BookDesc string
+
+    }
+    class SearchBooksInfo << (S,Aquamarine) >> {
+        + PageNum int
+        + PageSize int
+        + Total int
+        + Pages int
+
+    }
+    class SearchBooksQuery << (S,Aquamarine) >> {
+        + Keyword string
+        + WorkDirection string
+        + CategoryId string
+        + IsVip string
+        + BookStatus string
+        + WordCountMin string
+        + WordCountMax string
+        + UpdateTimeMin string
+        + Sort string
+        + PageNum int
+        + PageSize int
+
+    }
+    class UserCreateInput << (S,Aquamarine) >> {
+        + Username string
+        + Password string
+        + VelCode string
+        + SessionId string
+
+    }
+    class UserLoginInput << (S,Aquamarine) >> {
+        + Username string
+        + Password string
+
+    }
+    class model.List << (T, #FF7700) >>  {
+    }
+}
+"model.List" *-- "model.SearchBooksInfo"
+
+
+namespace news {
+    class sNews << (S,Aquamarine) >> {
+        + FindLatestTwoNewsInfo() ([]model.NewsInfo, error)
+        + FindNewsInfoById(id int) (*model.NewsInfo, error)
+
+    }
+}
+
+"service.INews" <|-- "news.sNews"
+
+namespace search {
+    class sSearch << (S,Aquamarine) >> {
+        + SearchBooks(ctx context.Context, query model.SearchBooksQuery) (*model.SearchBooksInfo, error)
+
+    }
+}
+
+"service.ISearch" <|-- "search.sSearch"
+
+namespace service {
+    interface IAuthor  {
+        + RegisterAuthor(ctx context.Context, registerInfo do.AuthorInfo) error
+        + QueryAuthorStatus(ctx context.Context) (*int, error)
+        + CreateBook(ctx context.Context, bookInfo do.BookInfo) error
+        + ListAuthorBookInfo(ctx context.Context, pageNum int, pageSize int) ([]entity.BookInfo, int, error)
+        + SaveBookChapter(ctx context.Context, input model.AuthorBookInput) error
+        + DeleteChapterById(ctx context.Context, chapterId string) error
+        + GetChapterById(ctx context.Context, chapterId string) (*model.BookChapter, error)
+        + UpdateChapterById(ctx context.Context, chapterId string, chapter model.BookChapter) error
+        + ListBookChapters(ctx context.Context, book model.ListBook) ([]entity.BookChapter, int, error)
+
+    }
+    interface IBook  {
+        + AddBookVisit(ctx context.Context, bookId int) error
+        + FindWorkDirectionCategory(ctx context.Context, workDirection int) ([]entity.BookCategory, error)
+        + FindBookInfoAndChapterNumById(ctx context.Context, id int) (*entity.BookInfo, int, error)
+        + GetLastChapterAbout(ctx context.Context, id int) (*entity.BookChapter, int, string, error)
+        + ListRecBooks(ctx context.Context, id int) ([]*entity.BookInfo, error)
+        + FindChapterList(ctx context.Context, id int) ([]*entity.BookChapter, error)
+        + FindBookContentByChapterId(ctx context.Context, id int) (*entity.BookChapter, string, *entity.BookInfo, int, error)
+        + FindPreChapterId(ctx context.Context, id int) (int, error)
+        + FindNextChapterId(ctx context.Context, id int) (int, error)
+        + ListVisitRank(ctx context.Context) ([]*entity.BookInfo, error)
+        + ListNewestRank(ctx context.Context) ([]*entity.BookInfo, error)
+        + ListUpdateRank(ctx context.Context) ([]*entity.BookInfo, error)
+        + ListNewestComments(ctx context.Context, bookId int) ([]*model.Comment, int, error)
+
+    }
+    interface IHome  {
+        + FindRecommendBook(ctx context.Context) ([]model.RecommendedBooks, error)
+        + QueryFriendLinkList(ctx context.Context) ([]entity.HomeFriendLink, error)
+
+    }
+    interface IMiddleware  {
+        + MiddlewareHandlerResponse(r *ghttp.Request) 
+        + JWTMiddleware(r *ghttp.Request) 
+        + Cors(r *ghttp.Request) 
+
+    }
+    interface INews  {
+        + FindLatestTwoNewsInfo() ([]model.NewsInfo, error)
+        + FindNewsInfoById(id int) (*model.NewsInfo, error)
+
+    }
+    interface ISearch  {
+        + SearchBooks(ctx context.Context, query model.SearchBooksQuery) (*model.SearchBooksInfo, error)
+
+    }
+    interface IUser  {
+        + NewCaptcha(ctx context.Context) (string, string, string, error)
+        + VerifyCaptcha(ctx context.Context, id string, inputCaptcha string) (bool, error)
+        + Create(ctx context.Context, in model.UserCreateInput) (string, int, string, error)
+        + IsUsernameRepeat(ctx context.Context, in model.UserCreateInput) (bool, error)
+        + Login(ctx context.Context, in model.UserLoginInput) (string, int, string, error)
+
+    }
+}
+
+
+namespace v1 {
+    class AddBookVisitReq << (S,Aquamarine) >> {
+        + BookId int
+
+    }
+    class AddBookVisitRes << (S,Aquamarine) >> {
+    }
+    class AuthorRegisterReq << (S,Aquamarine) >> {
+        + PenName string
+        + TelPhone string
+        + ChatAccount string
+        + Email string
+        + WorkDirection int
+
+    }
+    class AuthorRegisterRes << (S,Aquamarine) >> {
+    }
+    class BookInfo << (S,Aquamarine) >> {
+        + WorkDirection int
+        + CategoryId int
+        + CategoryName string
+        + PicUrl string
+        + BookName string
+        + BookDesc string
+        + IsVip int
+        + Id string
+        + CategoryId uint64
+        + CategoryName string
+        + PicUrl string
+        + BookName string
+        + AuthorId uint64
+        + AuthorName string
+        + BookDesc string
+        + BookStatus uint
+        + VisitCount uint64
+        + WordCount uint
+        + CommentCount uint
+        + FirstChapterId string
+        + LastChapterId string
+        + LastChapterName string
+        + UpdateTime *gtime.Time
+
+    }
+    class BookList << (S,Aquamarine) >> {
+        + Id string
+        + CategoryId string
+        + CategoryName string
+        + PicUrl string
+        + BookName string
+        + AuthorId int
+        + AuthorName string
+        + BookDesc string
+        + BookStatus int
+        + VisitCount int
+        + WordCount int
+        + CommentCount int
+        + FirstChapterId string
+        + LastChapterId string
+        + LastChapterName string
+        + UpdateTime gtime.Time
+
+    }
+    class BookRankInfo << (S,Aquamarine) >> {
+        + Id string
+        + CategoryId uint64
+        + CategoryName string
+        + PicUrl string
+        + BookName string
+        + AuthorName string
+        + BookDesc string
+        + WordCount uint
+        + LastChapterName string
+        + LastChapterUpdateTime *gtime.Time
+
+    }
+    class ChapterInfo << (S,Aquamarine) >> {
+        + Id string
+        + BookId string
+        + ChapterNum uint
+        + ChapterName string
+        + ChapterWordCount uint
+        + ChapterUpdateTime *gtime.Time
+        + IsVip uint
+
+    }
+    class Comments << (S,Aquamarine) >> {
+        + Id uint64
+        + CommentContent string
+        + CommentUser string
+        + CommentUserId uint64
+        + CommentUserPhoto string
+        + CommentTime *gtime.Time
+
+    }
+    class DeleteBookChapterReq << (S,Aquamarine) >> {
+        + ChapterId string
+
+    }
+    class DeleteBookChapterRes << (S,Aquamarine) >> {
+    }
+    class GetBookChapterReq << (S,Aquamarine) >> {
+        + ChapterId string
+
+    }
+    class GetBookChapterRes << (S,Aquamarine) >> {
+        + ChapterName string
+        + ChapterContent string
+        + IsVip int
+
+    }
+    class GetBookContentAboutReq << (S,Aquamarine) >> {
+        + ChapterId int
+
+    }
+    class GetBookContentAboutRes << (S,Aquamarine) >> {
+        + BookContent string
+
+    }
+    class GetBookInfoByIdReq << (S,Aquamarine) >> {
+        + Id int
+
+    }
+    class GetBookInfoByIdRes << (S,Aquamarine) >> {
+    }
+    class GetBookNewestRankReq << (S,Aquamarine) >> {
+    }
+    class GetBookNewestRankRes << (S,Aquamarine) >> {
+    }
+    class GetBookUpdateRankReq << (S,Aquamarine) >> {
+    }
+    class GetBookUpdateRankRes << (S,Aquamarine) >> {
+    }
+    class GetBookVisitRankReq << (S,Aquamarine) >> {
+    }
+    class GetBookVisitRankRes << (S,Aquamarine) >> {
+    }
+    class GetCaptchaReq << (S,Aquamarine) >> {
+    }
+    class GetCaptchaRes << (S,Aquamarine) >> {
+        + Img string
+        + SessionId string
+
+    }
+    class GetChapterIdReq << (S,Aquamarine) >> {
+    }
+    class GetChapterIdRes << (S,Aquamarine) >> {
+        + ChapterName string
+        + ChapterContent string
+        + IsVip string
+
+    }
+    class GetLastChapterAboutReq << (S,Aquamarine) >> {
+        + BookId int
+
+    }
+    class GetLastChapterAboutRes << (S,Aquamarine) >> {
+        + ChapterTotal int
+        + ContentSummary string
+
+    }
+    class GetNextChapterIdReq << (S,Aquamarine) >> {
+        + ChapterId int
+
+    }
+    class GetNextChapterIdRes << (S,Aquamarine) >> {
+        + Id string
+
+    }
+    class GetPreChapterIdReq << (S,Aquamarine) >> {
+        + ChapterId int
+
+    }
+    class GetPreChapterIdRes << (S,Aquamarine) >> {
+        + Id string
+
+    }
+    class ListBookCategoryReq << (S,Aquamarine) >> {
+        + WorkDirection int
+
+    }
+    class ListBookCategoryRes << (S,Aquamarine) >> {
+        + Id int
+        + Name string
+
+    }
+    class ListBookChaptersReq << (S,Aquamarine) >> {
+        + BookId string
+        + PageNum int
+        + PageSize int
+
+    }
+    class ListBookChaptersRes << (S,Aquamarine) >> {
+        + PageNum int
+        + PageSize int
+        + Total int
+        + Pages int
+
+    }
+    class ListBookCommentReq << (S,Aquamarine) >> {
+        + BookId int
+
+    }
+    class ListBookCommentRes << (S,Aquamarine) >> {
+        + CommentTotal int
+
+    }
+    class ListChaptersReq << (S,Aquamarine) >> {
+        + BookId int
+
+    }
+    class ListChaptersRes << (S,Aquamarine) >> {
+        + Id string
+        + BookId string
+        + ChapterNum uint
+        + ChapterName string
+        + ChapterWordCount uint
+        + ChapterUpdateTime *gtime.Time
+        + IsVip uint
+
+    }
+    class ListInfo << (S,Aquamarine) >> {
+        + Id string
+        + CategoryId int
+        + CategoryName string
+        + PicUrl string
+        + BookName string
+        + AuthorId int
+        + AuthorName string
+        + BookDesc string
+        + BookStatus int
+        + VisitCount int
+        + WordCount int
+        + CommentCount int
+        + FirstChapterId int
+        + LastChapterId int
+        + LastChapterName string
+        + UpdateTime time.Time
+
+    }
+    class ListRecommendedBooksReq << (S,Aquamarine) >> {
+        + BookId int
+
+    }
+    class ListRecommendedBooksRes << (S,Aquamarine) >> {
+    }
+    class NewsInfo << (S,Aquamarine) >> {
+        + Id int
+        + CategoryId int
+        + CategoryName string
+        + SourceName string
+        + Title string
+        + UpdateTime time.Time
+        + Content string
+
+    }
+    class PublishBook << (S,Aquamarine) >> {
+        + Id string
+        + BookId string
+        + ChapterNum string
+        + ChapterName string
+        + ChapterWordCount int
+        + ChapterUpdateTime gtime.Time
+        + IsVip int
+
+    }
+    class PublishBookChapterReq << (S,Aquamarine) >> {
+        + BookId string
+        + ChapterName string
+        + ChapterContent string
+        + IsVip int
+
+    }
+    class PublishBookChapterRes << (S,Aquamarine) >> {
+    }
+    class PublishBookListReq << (S,Aquamarine) >> {
+        + PageNum int
+        + PageSize int
+
+    }
+    class PublishBookListRes << (S,Aquamarine) >> {
+        + PageNum int
+        + PageSize int
+        + Total int
+        + Pages int
+
+    }
+    class PublishBookReq << (S,Aquamarine) >> {
+    }
+    class PublishBookRes << (S,Aquamarine) >> {
+    }
+    class QueryAuthorStatusReq << (S,Aquamarine) >> {
+    }
+    class QueryAuthorStatusRes << (S,Aquamarine) >> {
+        + Status *int
+
+    }
+    class QueryFriendLinkBooksReq << (S,Aquamarine) >> {
+    }
+    class QueryFriendLinkBooksRes << (S,Aquamarine) >> {
+        + LinkName string
+        + LinkUrl string
+
+    }
+    class QueryNewsInfoReq << (S,Aquamarine) >> {
+        + Id int
+
+    }
+    class QueryNewsInfoRes << (S,Aquamarine) >> {
+    }
+    class QueryNewsLatestInfoReq << (S,Aquamarine) >> {
+    }
+    class QueryNewsLatestInfoRes << (S,Aquamarine) >> {
+    }
+    class QueryRecommendedBooksReq << (S,Aquamarine) >> {
+    }
+    class QueryRecommendedBooksRes << (S,Aquamarine) >> {
+        + Type int
+        + BookId string
+        + PicUrl string
+        + BookName string
+        + AuthorName string
+        + BookDesc string
+
+    }
+    class ResourceImageReq << (S,Aquamarine) >> {
+        + File *ghttp.UploadFile
+
+    }
+    class ResourceImageRes << (S,Aquamarine) >> {
+        + Url string
+
+    }
+    class SearchBooksReq << (S,Aquamarine) >> {
+        + Keyword string
+        + WorkDirection string
+        + CategoryId string
+        + IsVip string
+        + BookStatus string
+        + WordCountMin string
+        + WordCountMax string
+        + UpdateTimeMin string
+        + Sort string
+        + PageNum int
+        + PageSize int
+
+    }
+    class SearchBooksRes << (S,Aquamarine) >> {
+        + PageNum int
+        + PageSize int
+        + Total int
+        + Pages int
+
+    }
+    class SignInReq << (S,Aquamarine) >> {
+        + Username string
+        + Password string
+
+    }
+    class SignInRes << (S,Aquamarine) >> {
+        + UId int
+        + Token string
+        + Nickname string
+
+    }
+    class SignUpReq << (S,Aquamarine) >> {
+        + Username string
+        + Password string
+        + VelCode string
+        + SessionId string
+
+    }
+    class SignUpRes << (S,Aquamarine) >> {
+        + UId int
+        + Token string
+        + Username string
+
+    }
+    class UpdateBookChapterReq << (S,Aquamarine) >> {
+        + ChapterId string
+        + ChapterName string
+        + ChapterContent string
+        + IsVip int
+
+    }
+    class UpdateBookChapterRes << (S,Aquamarine) >> {
+    }
+    class v1.CommentArray << (T, #FF7700) >>  {
+    }
+    class v1.List << (T, #FF7700) >>  {
+    }
+    class v1.PublishList << (T, #FF7700) >>  {
+    }
+}
+"g.Meta" *-- "v1.AddBookVisitReq"
+"g.Meta" *-- "v1.AuthorRegisterReq"
+"g.Meta" *-- "v1.DeleteBookChapterReq"
+"g.Meta" *-- "v1.GetBookChapterReq"
+"g.Meta" *-- "v1.GetBookContentAboutReq"
+"v1.BookInfo" *-- "v1.GetBookContentAboutRes"
+"v1.ChapterInfo" *-- "v1.GetBookContentAboutRes"
+"g.Meta" *-- "v1.GetBookInfoByIdReq"
+"v1.BookInfo" *-- "v1.GetBookInfoByIdRes"
+"g.Meta" *-- "v1.GetBookNewestRankReq"
+"v1.BookRankInfo" *-- "v1.GetBookNewestRankRes"
+"g.Meta" *-- "v1.GetBookUpdateRankReq"
+"v1.BookRankInfo" *-- "v1.GetBookUpdateRankRes"
+"g.Meta" *-- "v1.GetBookVisitRankReq"
+"v1.BookRankInfo" *-- "v1.GetBookVisitRankRes"
+"g.Meta" *-- "v1.GetCaptchaReq"
+"g.Meta" *-- "v1.GetChapterIdReq"
+"g.Meta" *-- "v1.GetLastChapterAboutReq"
+"v1.ChapterInfo" *-- "v1.GetLastChapterAboutRes"
+"g.Meta" *-- "v1.GetNextChapterIdReq"
+"g.Meta" *-- "v1.GetPreChapterIdReq"
+"g.Meta" *-- "v1.ListBookCategoryReq"
+"g.Meta" *-- "v1.ListBookChaptersReq"
+"v1.PublishList" *-- "v1.ListBookChaptersRes"
+"g.Meta" *-- "v1.ListBookCommentReq"
+"v1.CommentArray" *-- "v1.ListBookCommentRes"
+"g.Meta" *-- "v1.ListChaptersReq"
+"g.Meta" *-- "v1.ListRecommendedBooksReq"
+"v1.BookInfo" *-- "v1.ListRecommendedBooksRes"
+"g.Meta" *-- "v1.PublishBookChapterReq"
+"g.Meta" *-- "v1.PublishBookListReq"
+"v1.List" *-- "v1.PublishBookListRes"
+"g.Meta" *-- "v1.PublishBookReq"
+"v1.BookInfo" *-- "v1.PublishBookReq"
+"g.Meta" *-- "v1.QueryAuthorStatusReq"
+"g.Meta" *-- "v1.QueryFriendLinkBooksReq"
+"g.Meta" *-- "v1.QueryFriendLinkBooksRes"
+"g.Meta" *-- "v1.QueryNewsInfoReq"
+"v1.NewsInfo" *-- "v1.QueryNewsInfoRes"
+"g.Meta" *-- "v1.QueryNewsLatestInfoReq"
+"v1.NewsInfo" *-- "v1.QueryNewsLatestInfoRes"
+"g.Meta" *-- "v1.QueryRecommendedBooksReq"
+"g.Meta" *-- "v1.ResourceImageReq"
+"g.Meta" *-- "v1.SearchBooksReq"
+"v1.List" *-- "v1.SearchBooksRes"
+"g.Meta" *-- "v1.SignInReq"
+"g.Meta" *-- "v1.SignUpReq"
+"g.Meta" *-- "v1.UpdateBookChapterReq"
+
+
+"dao.internalAuthorCodeDao" #.. "dao.internalAuthorCodeDao"
+"dao.internalAuthorIncomeDao" #.. "dao.internalAuthorIncomeDao"
+"dao.internalAuthorIncomeDetailDao" #.. "dao.internalAuthorIncomeDetailDao"
+"dao.internalAuthorInfoDao" #.. "dao.internalAuthorInfoDao"
+"dao.internalBookCategoryDao" #.. "dao.internalBookCategoryDao"
+"dao.internalBookChapterDao" #.. "dao.internalBookChapterDao"
+"dao.internalBookCommentCopy1Dao" #.. "dao.internalBookCommentCopy1Dao"
+"dao.internalBookCommentDao" #.. "dao.internalBookCommentDao"
+"dao.internalBookCommentReplyDao" #.. "dao.internalBookCommentReplyDao"
+"dao.internalBookContentDao" #.. "dao.internalBookContentDao"
+"dao.internalBookInfoDao" #.. "dao.internalBookInfoDao"
+"dao.internalHomeBookDao" #.. "dao.internalHomeBookDao"
+"dao.internalHomeFriendLinkDao" #.. "dao.internalHomeFriendLinkDao"
+"dao.internalNewsCategoryDao" #.. "dao.internalNewsCategoryDao"
+"dao.internalNewsContentDao" #.. "dao.internalNewsContentDao"
+"dao.internalNewsInfoDao" #.. "dao.internalNewsInfoDao"
+"dao.internalPayAlipayDao" #.. "dao.internalPayAlipayDao"
+"dao.internalPayWechatDao" #.. "dao.internalPayWechatDao"
+"dao.internalSysLogDao" #.. "dao.internalSysLogDao"
+"dao.internalSysMenuDao" #.. "dao.internalSysMenuDao"
+"dao.internalSysRoleDao" #.. "dao.internalSysRoleDao"
+"dao.internalSysRoleMenuDao" #.. "dao.internalSysRoleMenuDao"
+"dao.internalSysUserDao" #.. "dao.internalSysUserDao"
+"dao.internalSysUserRoleDao" #.. "dao.internalSysUserRoleDao"
+"dao.internalTestDao" #.. "dao.internalTestDao"
+"dao.internalUserBookshelfDao" #.. "dao.internalUserBookshelfDao"
+"dao.internalUserCommentDao" #.. "dao.internalUserCommentDao"
+"dao.internalUserCommentReplyDao" #.. "dao.internalUserCommentReplyDao"
+"dao.internalUserConsumeLogDao" #.. "dao.internalUserConsumeLogDao"
+"dao.internalUserFeedbackDao" #.. "dao.internalUserFeedbackDao"
+"dao.internalUserInfoDao" #.. "dao.internalUserInfoDao"
+"dao.internalUserPayLogDao" #.. "dao.internalUserPayLogDao"
+"dao.internalUserReadHistoryDao" #.. "dao.internalUserReadHistoryDao"
+"model.[]ListInfo" #.. "model.List"
+"v1.[]Comments" #.. "v1.CommentArray"
+"v1.[]ListInfo" #.. "v1.List"
+"v1.[]PublishBook" #.. "v1.PublishList"
+@enduml
